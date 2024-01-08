@@ -3,7 +3,7 @@ from django.conf import settings
 
 
 class Hashtag(models.Model):
-    name = models.CharField()
+    name = models.CharField(max_length=100)
 
 
 class Post(models.Model):
