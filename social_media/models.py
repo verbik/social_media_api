@@ -15,10 +15,15 @@ class Post(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="posts"
     )
     text_content = models.TextField()
-    hashtags = models.ManyToManyField(Hashtag, blank=True)
-    likes = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True)
+    hashtags = models.ManyToManyField("Hashtag", blank=True, related_name="posts")
+    likes = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, blank=True, related_name="liked_posts"
+    )
     comments = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, blank=True, through="Comments"
+        settings.AUTH_USER_MODEL,
+        through="Comment",
+        related_name="commented_posts",
+        blank=True,
     )
 
     class Meta:
@@ -28,8 +33,15 @@ class Post(models.Model):
         return f"Post by {self.user}. Posted {self.created_at}"
 
 
-class Comments(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+class Comment(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="comments"
+    )
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, related_name="post_comments"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-    content = models.CharField(max_length=255)
+    comment_contents = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"Comment by {self.user} posted {self.created_at}"

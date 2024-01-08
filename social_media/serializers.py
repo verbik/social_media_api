@@ -1,7 +1,15 @@
 from django.db import transaction
 from rest_framework import serializers
 
-from .models import Hashtag, Post
+from .models import Hashtag, Post, Comment
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source="user.username", read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ("user", "created_at", "comment_contents")
 
 
 class HashtagSerializer(serializers.ModelSerializer):
@@ -22,6 +30,8 @@ class PostSerializer(serializers.ModelSerializer):
             "user",
             "text_content",
             "hashtags",
+            "likes",
+            "comments",
         )
 
 
@@ -29,6 +39,24 @@ class PostListSerializer(PostSerializer):
     hashtags = serializers.SlugRelatedField(
         many=True, read_only=True, slug_field="name"
     )
+    likes_amount = serializers.IntegerField()
+    comments_amount = serializers.IntegerField()
+
+    class Meta:
+        model = Post
+        fields = (
+            "id",
+            "created_at",
+            "user",
+            "text_content",
+            "hashtags",
+            "likes_amount",
+            "comments_amount",
+        )
+
+
+class PostDetailSerializer(PostSerializer):  # TODO:
+    pass
 
 
 class PostHashtagSerializer(serializers.ModelSerializer):
