@@ -10,11 +10,11 @@ from .serializers import PostSerializer, PostHashtagSerializer, PostListSerializ
 from .models import Post
 
 
-class LikeCommentView:  # TODO: complete likes and comments logic
+class LikeCommentMixin:
     pass
 
 
-class AllPostsViewSet(viewsets.ModelViewSet, LikeCommentView):
+class AllPostsViewSet(viewsets.ModelViewSet, LikeCommentMixin):
     serializer_class = PostSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = PostFilter
