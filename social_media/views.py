@@ -15,6 +15,7 @@ from .serializers import (
     PostDetailSerializer,
     CommentSerializer,
     CommentCreateSerializer,
+    PostLikeSerializer,
 )
 from .models import Post, Comment
 
@@ -39,6 +40,26 @@ class LikeCommentMixin(GenericViewSet):
 
         serializer = CommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="like",
+        permission_classes=[IsAuthenticated],
+    )
+    def like(self, request: Request, pk=None) -> Response:
+        """Endpoint for liking a specified post"""
+        post = self.get_object()
+        user = self.request.user
+
+        if user in post.likes.all():
+            post.likes.remove(user)
+        else:
+            post.likes.add(user)
+
+        post.refresh_from_db()
+
+        return Response(status=status.HTTP_200_OK)
 
 
 class AllPostsViewSet(
@@ -68,6 +89,9 @@ class AllPostsViewSet(
 
         if self.action == "comments":
             return CommentCreateSerializer
+
+        if self.action == "like":
+            return PostLikeSerializer
 
         return PostSerializer
 

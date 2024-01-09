@@ -68,6 +68,14 @@ class PostDetailSerializer(PostSerializer):  # TODO:
     )
 
 
+class PostLikeSerializer(serializers.ModelSerializer):
+    like = serializers.BooleanField()
+
+    class Meta:
+        model = Post
+        fields = ("like",)
+
+
 class PostHashtagSerializer(serializers.ModelSerializer):
     """Serializer for hashtag creation when creating a new post instance"""
 
