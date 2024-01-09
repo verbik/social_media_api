@@ -1,14 +1,23 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, mixins
 from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import UserSerializer, TokenObtainPairSerializer
+from .models import UserProfile
+from .serializers import (
+    UserSerializer,
+    TokenObtainPairSerializer,
+    UserProfileSerializer,
+    UserProfileListSerializer,
+    UserProfileDetailSerializer,
+)
 
 
 class RegisterView(CreateAPIView):
@@ -50,3 +59,29 @@ class LogoutView(APIView):
 
 class EmailTokenObtainPairView(TokenObtainPairView):
     serializer_class = TokenObtainPairSerializer
+
+
+class AllUsersProfileViewSet(
+    GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin
+):
+    serializer_class = UserProfileSerializer
+    queryset = UserProfile.objects.all()
+
+    def get_queryset(self):
+        user = self.request.user
+
+        queryset = UserProfile.objects.exclude(user=user).prefetch_related("user")
+
+        if self.action == "list":
+            queryset = queryset.annotate(followers_amount=Count("followed_by"))
+
+        return queryset
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return UserProfileListSerializer
+
+        if self.action == "retrieve":
+            return UserProfileDetailSerializer
+
+        return UserProfileSerializer

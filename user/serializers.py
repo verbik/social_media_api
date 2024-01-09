@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.contrib.auth.base_user import BaseUserManager
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import (
     TokenObtainPairSerializer as JwtTokenObtainPairSerializer,
@@ -27,4 +26,22 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    pass
+    class Meta:
+        model = UserProfile
+        fields = ("id", "user", "bio", "followed_by")
+
+
+class UserProfileListSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source="user.username")
+    followers_amount = serializers.IntegerField()
+
+    class Meta:
+        model = UserProfile
+        fields = ("id", "user", "bio", "followers_amount")
+
+
+class UserProfileDetailSerializer(UserProfileSerializer):
+    user = serializers.CharField(source="user.username")
+    followed_by = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="username"
+    )
