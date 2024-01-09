@@ -16,6 +16,7 @@ from .serializers import (
     CommentSerializer,
     CommentCreateSerializer,
     PostLikeSerializer,
+    PostUpdateSerializer,
 )
 from .models import Post, Comment
 
@@ -87,11 +88,12 @@ class AllPostsViewSet(
     def get_queryset(self):
         user = self.request.user
 
-        queryset = (
-            Post.objects.exclude(user=user)
-            .prefetch_related("hashtags")
-            .annotate(likes_amount=Count("likes"), comments_amount=Count("comments"))
-        )
+        queryset = Post.objects.exclude(user=user).prefetch_related("hashtags")
+
+        if self.action == "list":
+            queryset = queryset.annotate(
+                likes_amount=Count("likes"), comments_amount=Count("comments")
+            )
 
         return queryset
 
@@ -139,6 +141,9 @@ class UserPostsViewSet(viewsets.ModelViewSet):
 
         if self.action == "retrieve":
             return PostDetailSerializer
+
+        if self.action in ("update", "partial_update"):
+            return PostUpdateSerializer
 
         return PostSerializer
 

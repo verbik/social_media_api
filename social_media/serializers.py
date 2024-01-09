@@ -101,3 +101,32 @@ class PostHashtagSerializer(serializers.ModelSerializer):
                 ]
                 post.hashtags.set(hashtags)
             return post
+
+
+class PostUpdateSerializer(PostHashtagSerializer):
+    hashtags = HashtagSerializer(many=True, read_only=False, allow_empty=True)
+
+    class Meta:
+        model = Post
+        fields = (
+            "text_content",
+            "hashtags",
+        )
+
+    def update(self, instance, validated_data):
+        with transaction.atomic():
+            hashtags_data = validated_data.pop("hashtags", [])
+
+            instance.text_content = validated_data.get(
+                "text_content", instance.text_content
+            )
+            instance.save()
+
+            if hashtags_data:
+                hashtags = [
+                    Hashtag.objects.get_or_create(name=tag["name"])[0]
+                    for tag in hashtags_data
+                ]
+                instance.hashtags.set(hashtags)
+
+        return instance
