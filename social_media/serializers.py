@@ -5,11 +5,17 @@ from .models import Hashtag, Post, Comment
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.CharField(source="user.username", read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
 
     class Meta:
         model = Comment
-        fields = ("user", "created_at", "comment_contents")
+        fields = ("username", "created_at", "comment_contents")
+
+
+class CommentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ("id", "comment_contents")
 
 
 class HashtagSerializer(serializers.ModelSerializer):
@@ -56,7 +62,7 @@ class PostListSerializer(PostSerializer):
 
 
 class PostDetailSerializer(PostSerializer):  # TODO:
-    pass
+    comments = CommentSerializer(source="post_comments", many=True, read_only=True)
 
 
 class PostHashtagSerializer(serializers.ModelSerializer):

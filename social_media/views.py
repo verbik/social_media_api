@@ -1,6 +1,10 @@
 from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from .filters import PostFilter
@@ -10,12 +14,31 @@ from .serializers import (
     PostListSerializer,
     PostDetailSerializer,
     CommentSerializer,
+    CommentCreateSerializer,
 )
 from .models import Post, Comment
 
 
-class LikeCommentMixin:
-    pass
+class LikeCommentMixin(GenericViewSet):
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="comments",
+        permission_classes=[IsAuthenticated],
+    )
+    def comments(self, request: Request, pk=None) -> Response:
+        """Endpoint for posting a comment to specified post"""
+        post = self.get_object()
+        comment_contents = request.data.get("comment_contents")
+
+        comment = Comment.objects.create(
+            user=request.user,
+            post=post,
+            comment_contents=comment_contents,
+        )
+
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -48,6 +71,9 @@ class AllPostsViewSet(
         if self.action == "retrieve":
             return PostDetailSerializer
 
+        if self.action == "comments":
+            return CommentCreateSerializer
+
         return PostSerializer
 
 
@@ -76,6 +102,9 @@ class UserPostsViewSet(viewsets.ModelViewSet):
 
         if self.action == "create":
             return PostHashtagSerializer
+
+        if self.action == "retrieve":
+            return PostDetailSerializer
 
         return PostSerializer
 
