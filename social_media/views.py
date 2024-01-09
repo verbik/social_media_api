@@ -41,11 +41,6 @@ class LikeCommentMixin(GenericViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class CommentViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentSerializer
-    queryset = Comment.objects.all()
-
-
 class AllPostsViewSet(
     mixins.ListModelMixin, mixins.RetrieveModelMixin, LikeCommentMixin, GenericViewSet
 ):

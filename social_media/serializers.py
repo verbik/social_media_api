@@ -63,6 +63,9 @@ class PostListSerializer(PostSerializer):
 
 class PostDetailSerializer(PostSerializer):  # TODO:
     comments = CommentSerializer(source="post_comments", many=True, read_only=True)
+    likes = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="username"
+    )
 
 
 class PostHashtagSerializer(serializers.ModelSerializer):
