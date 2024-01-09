@@ -1,5 +1,5 @@
-from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth import get_user_model
 
 
 class EmailBackend(ModelBackend):
@@ -9,7 +9,9 @@ class EmailBackend(ModelBackend):
             email = kwargs.get("email", None)
             if email is None:
                 email = kwargs.get("username", None)
-            user = user_model.objects.get(email=email)
+
+            user = user_model.objects.get(email=email, is_active=True)
+
             if user.check_password(kwargs.get("password", None)):
                 return user
         except user_model.DoesNotExist:
