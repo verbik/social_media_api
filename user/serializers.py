@@ -45,3 +45,11 @@ class UserProfileDetailSerializer(UserProfileSerializer):
     followed_by = serializers.SlugRelatedField(
         many=True, read_only=True, slug_field="username"
     )
+
+
+class UserProfileFollowSerializer(serializers.ModelSerializer):
+    follow = serializers.BooleanField()
+
+    class Meta:
+        model = UserProfile
+        fields = ("follow",)

@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Count
+from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status, mixins
 from rest_framework.views import APIView
@@ -17,6 +19,7 @@ from .serializers import (
     UserProfileSerializer,
     UserProfileListSerializer,
     UserProfileDetailSerializer,
+    UserProfileFollowSerializer,
 )
 
 
@@ -84,4 +87,27 @@ class AllUsersProfileViewSet(
         if self.action == "retrieve":
             return UserProfileDetailSerializer
 
+        if self.action == "follow_user":
+            return UserProfileFollowSerializer
+
         return UserProfileSerializer
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="follow-user",
+        permission_classes=[IsAuthenticated],
+    )
+    def follow_user(self, request: Request, pk=None) -> Response:
+        """Endpoint for following specified user"""
+        user_profile = self.get_object()
+        user = self.request.user
+
+        if user in user_profile.followed_by.all():
+            user_profile.followed_by.remove(user)
+        else:
+            user_profile.followed_by.add(user)
+
+        user_profile.refresh_from_db()
+
+        return Response(status=status.HTTP_200_OK)

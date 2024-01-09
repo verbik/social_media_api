@@ -79,7 +79,7 @@ class LikeCommentMixin(GenericViewSet):
 
 
 class AllPostsViewSet(
-    mixins.ListModelMixin, mixins.RetrieveModelMixin, LikeCommentMixin, GenericViewSet
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, LikeCommentMixin
 ):
     serializer_class = PostListSerializer
     filter_backends = [DjangoFilterBackend]
@@ -116,6 +116,7 @@ class AllPostsViewSet(
 class UserPostsViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = PostFilter
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
