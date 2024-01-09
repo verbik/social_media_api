@@ -9,10 +9,12 @@ from user.views import (
     EmailTokenObtainPairView,
     LogoutView,
     AllUsersProfileViewSet,
+    MyUserProfileViewSet,
 )
 
 router = DefaultRouter()
 router.register("profiles", AllUsersProfileViewSet, basename="all-profiles")
+router.register("my-profile", MyUserProfileViewSet, basename="my-profile")
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register_user"),
