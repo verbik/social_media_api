@@ -24,7 +24,7 @@ class LikeCommentMixin(GenericViewSet):
     @action(
         methods=["POST"],
         detail=True,
-        url_path="comments",
+        url_path="comment",
         permission_classes=[IsAuthenticated],
     )
     def comments(self, request: Request, pk=None) -> Response:
@@ -60,6 +60,21 @@ class LikeCommentMixin(GenericViewSet):
         post.refresh_from_db()
 
         return Response(status=status.HTTP_200_OK)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        url_path="liked-posts",
+        permission_classes=[IsAuthenticated],
+    )
+    def liked_posts(self, request: Request) -> Response:
+        user = self.request.user
+
+        liked_posts = Post.objects.filter(likes=user)
+
+        serializer = PostSerializer(liked_posts, many=True)
+
+        return Response(serializer.data)
 
 
 class AllPostsViewSet(
