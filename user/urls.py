@@ -12,7 +12,7 @@ from user.views import (
 )
 
 router = DefaultRouter()
-router.register("profiles", AllUsersProfileViewSet)
+router.register("profiles", AllUsersProfileViewSet, basename="all-profiles")
 
 urlpatterns = [
     path("register/", RegisterView.as_view(), name="register_user"),

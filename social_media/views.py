@@ -127,10 +127,6 @@ class UserPostsViewSet(viewsets.ModelViewSet):
             .annotate(likes_amount=Count("likes"), comments_amount=Count("comments"))
         )
 
-        hashtag = self.request.query_params.get("#")
-        if hashtag:
-            queryset = queryset.filter(hashtags__name__icontains=hashtag)
-
         return queryset
 
     def get_serializer_class(self):

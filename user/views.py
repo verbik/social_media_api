@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Count
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -12,6 +13,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from .filters import UserProfileFilter
 from .models import UserProfile
 from .serializers import (
     UserSerializer,
@@ -67,8 +69,8 @@ class EmailTokenObtainPairView(TokenObtainPairView):
 class AllUsersProfileViewSet(
     GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin
 ):
-    serializer_class = UserProfileSerializer
-    queryset = UserProfile.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = UserProfileFilter
 
     def get_queryset(self):
         user = self.request.user
@@ -77,6 +79,8 @@ class AllUsersProfileViewSet(
 
         if self.action == "list":
             queryset = queryset.annotate(followers_amount=Count("followed_by"))
+
+        username = self.request.query_params.get("")
 
         return queryset
 
@@ -111,3 +115,18 @@ class AllUsersProfileViewSet(
         user_profile.refresh_from_db()
 
         return Response(status=status.HTTP_200_OK)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        url_path="following",
+        permission_classes=[IsAuthenticated],
+    )
+    def following(self, request: Request) -> Response:
+        user = self.request.user
+
+        followed_profiles = UserProfile.objects.filter(followed_by=user)
+
+        serializer = UserProfileDetailSerializer(followed_profiles, many=True)
+
+        return Response(serializer.data)
