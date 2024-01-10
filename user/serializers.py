@@ -30,13 +30,21 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         data = super(UserProfileSerializer, self).validate(attrs=attrs)
         UserProfile.validate_owner_not_following(
-            attrs["user"], attrs["followed_by"], ValidationError
+            self.context["request"].user, attrs["followed_by"], ValidationError
         )
         return data
 
     class Meta:
         model = UserProfile
         fields = ("id", "user", "bio", "followed_by")
+        read_only_fields = ("user",)
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+        validated_data["user"] = user
+        if user.profile is not None:
+            raise ValidationError("This user already have an account!")
+        return super().create(validated_data)
 
 
 class UserProfileListSerializer(serializers.ModelSerializer):

@@ -54,26 +54,15 @@ class User(AbstractUser):
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.DO_NOTHING, related_name="profile"
+    )
     bio = models.TextField()
     followed_by = models.ManyToManyField(User, related_name="following", blank=True)
 
     @staticmethod
-    def validate_owner_not_following(user: settings.AUTH_USER_MODEL, following_users: QuerySet, error_to_raise):
+    def validate_owner_not_following(
+        user: settings.AUTH_USER_MODEL, following_users: QuerySet, error_to_raise
+    ):
         if user in following_users:
             raise error_to_raise("User cannot follow himself.")
-
-    def clean(self):
-        UserProfile.validate_owner_not_following(self, ValidationError)
-
-    def save(
-        self,
-        force_insert=False,
-        force_update=False,
-        using=None,
-        update_fields=None,
-    ):
-        self.full_clean()
-        return super(UserProfile, self).save(
-            force_insert, force_update, using, update_fields
-        )
