@@ -3,6 +3,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db.models import QuerySet
 from django.utils.translation import gettext_lazy as _
 
 
@@ -58,8 +59,8 @@ class UserProfile(models.Model):
     followed_by = models.ManyToManyField(User, related_name="following", blank=True)
 
     @staticmethod
-    def validate_owner_not_following(profile, error_to_raise):
-        if profile.user in profile.followed_by.all():
+    def validate_owner_not_following(user: settings.AUTH_USER_MODEL, following_users: QuerySet, error_to_raise):
+        if user in following_users:
             raise error_to_raise("User cannot follow himself.")
 
     def clean(self):

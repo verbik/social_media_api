@@ -134,6 +134,7 @@ class AllUsersProfileViewSet(
 
 class MyUserProfileViewSet(
     viewsets.GenericViewSet,
+    mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
