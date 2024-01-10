@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
@@ -139,6 +140,23 @@ class MyUserProfileViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = UserProfile.objects.filter(user=self.request.user)
         return queryset
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        url_path="followers",
+        permission_classes=[
+            IsAuthenticated,
+        ],
+    )
+    def follower_list(self, request):
+        user_profile = UserProfile.objects.get(user=request.user)
+
+        followers = user_profile.followed_by.all()
+
+        serializer = UserSerializer(followers, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
