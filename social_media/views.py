@@ -7,6 +7,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from .permissions import IsOwnerOrReadOnly
 from .filters import PostFilter
 from .serializers import (
     PostSerializer,
@@ -19,6 +20,29 @@ from .serializers import (
     PostUpdateSerializer,
 )
 from .models import Post, Comment
+
+
+class CommentViewSet(
+    GenericViewSet,
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action == "update" or self.action == "partial_update":
+            return CommentCreateSerializer
+        return CommentSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        return Comment.objects.filter(user=self.request.user)
 
 
 class LikeCommentMixin(GenericViewSet):
