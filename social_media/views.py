@@ -87,8 +87,14 @@ class AllPostsViewSet(
 
     def get_queryset(self):
         user = self.request.user
+        user_profile = user.profile
+        following_users = user_profile.followed_by.all()
 
-        queryset = Post.objects.exclude(user=user).prefetch_related("hashtags")
+        queryset = (
+            Post.objects.exclude(user=user)
+            .filter(user__in=following_users)
+            .prefetch_related("hashtags")
+        )
 
         if self.action == "list":
             queryset = queryset.annotate(
