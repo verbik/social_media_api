@@ -29,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         data = super(UserProfileSerializer, self).validate(attrs=attrs)
-        UserProfile.validate_owner_not_following(
+        UserProfile.validate_profile(
             self.context["request"].user, attrs["followed_by"], ValidationError
         )
         return data

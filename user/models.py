@@ -61,8 +61,25 @@ class UserProfile(models.Model):
     followed_by = models.ManyToManyField(User, related_name="following", blank=True)
 
     @staticmethod
-    def validate_owner_not_following(
+    def validate_profile(
         user: settings.AUTH_USER_MODEL, following_users: QuerySet, error_to_raise
     ):
+        if user.profile is not None:
+            raise error_to_raise("This user already has an account.")
         if user in following_users:
             raise error_to_raise("User cannot follow himself.")
+
+    def clean(self):
+        UserProfile.validate_profile(self.user, self.followed_by, ValidationError)
+
+    def save(
+        self,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None,
+    ):
+        self.full_clean()
+        return super(UserProfile, self).save(
+            force_insert, force_update, using, update_fields
+        )
