@@ -5,7 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status, mixins, viewsets, permissions
@@ -74,16 +74,16 @@ class AllUsersProfileViewSet(
 ):
     filter_backends = [DjangoFilterBackend]
     filterset_class = UserProfileFilter
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        user = self.request.user
-
-        queryset = UserProfile.objects.exclude(user=user).prefetch_related("user")
+        queryset = UserProfile.objects.all().prefetch_related("user")
+        if self.request.user.is_authenticated:
+            user = self.request.user
+            queryset = queryset.exclude(user=user)
 
         if self.action == "list":
             queryset = queryset.annotate(followers_amount=Count("followed_by"))
-
-        username = self.request.query_params.get("")
 
         return queryset
 

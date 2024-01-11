@@ -3,7 +3,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -111,17 +111,23 @@ class AllPostsViewSet(
     serializer_class = PostListSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = PostFilter
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+    ]
 
     def get_queryset(self):
-        user = self.request.user
-        user_profile = user.profile
-        following_users = user_profile.followed_by.all()
+        if self.request.user.is_anonymous:
+            queryset = Post.objects.all().prefetch_related("hashtags")
+        else:
+            user = self.request.user
+            user_profile = user.profile
+            following_users = user_profile.followed_by.all()
 
-        queryset = (
-            Post.objects.exclude(user=user)
-            .filter(user__in=following_users)
-            .prefetch_related("hashtags")
-        )
+            queryset = (
+                Post.objects.exclude(user=user)
+                .filter(user__in=following_users)
+                .prefetch_related("hashtags")
+            )
 
         if self.action == "list":
             queryset = queryset.annotate(
@@ -162,7 +168,9 @@ class AllPostsViewSet(
 class UserPostsViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = PostFilter
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+    ]
 
     def get_queryset(self):
         user = self.request.user
