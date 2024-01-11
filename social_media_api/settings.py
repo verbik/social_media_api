@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "django_filters",
     "debug_toolbar",
+    "drf_spectacular",
     "user",
     "social_media",
 ]
@@ -141,6 +142,7 @@ AUTH_USER_MODEL = "user.User"
 INTERNAL_IPS = ("127.0.0.1",)
 
 REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),

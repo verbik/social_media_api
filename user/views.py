@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -41,6 +42,7 @@ class LogoutView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
+        """Endpoint for logging out and making token invalid"""
         try:
             refresh_token = request.data["refresh_token"]
             token = RefreshToken(refresh_token)
@@ -124,6 +126,7 @@ class AllUsersProfileViewSet(
         permission_classes=[IsAuthenticated],
     )
     def following(self, request: Request) -> Response:
+        """Endpoint to see profiles active user is following"""
         user = self.request.user
 
         followed_profiles = UserProfile.objects.filter(followed_by=user)
@@ -131,6 +134,18 @@ class AllUsersProfileViewSet(
         serializer = UserProfileDetailSerializer(followed_profiles, many=True)
 
         return Response(serializer.data)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "username",
+                type={"type": "str"},
+                description="Filter profiles by username(ex. ?username=username)",
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class MyUserProfileViewSet(viewsets.ModelViewSet):
@@ -150,6 +165,7 @@ class MyUserProfileViewSet(viewsets.ModelViewSet):
         ],
     )
     def follower_list(self, request):
+        """Endpoint to get list of users who follows request.user profile"""
         user_profile = UserProfile.objects.get(user=request.user)
 
         followers = user_profile.followed_by.all()

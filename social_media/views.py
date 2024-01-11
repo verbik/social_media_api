@@ -1,5 +1,6 @@
 from django.db.models import Count
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -94,6 +95,7 @@ class LikeCommentMixin(GenericViewSet):
         permission_classes=[IsAuthenticated],
     )
     def liked_posts(self, request: Request) -> Response:
+        """Endpoint to get all liked by active user posts"""
         user = self.request.user
 
         liked_posts = Post.objects.filter(likes=user)
@@ -142,6 +144,19 @@ class AllPostsViewSet(
             return PostLikeSerializer
 
         return PostSerializer
+
+    # Only for documentation purposes
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "hashtags",
+                type={"type": "str"},
+                description="Filter by hashtags(ex. ?hashtags=hashtag)",
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class UserPostsViewSet(viewsets.ModelViewSet):
@@ -195,3 +210,17 @@ class UserPostsViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer) -> None:
         serializer.save(user=self.request.user)
+
+        # Only for documentation purposes
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "hashtags",
+                type={"type": "str"},
+                description="Filter by hashtags(ex. ?hashtags=hashtag)",
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
