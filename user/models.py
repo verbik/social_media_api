@@ -1,3 +1,6 @@
+import os.path
+import uuid
+
 from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 from django.core.exceptions import ValidationError
@@ -53,9 +56,19 @@ class User(AbstractUser):
         return self.email
 
 
+def profile_picture_filepath(instance, filename):
+    _, extension = os.path.splitext(filename)
+    filename = f"{instance.user.id}-{instance.id}-{uuid.uuid4()}{extension}"
+
+    return os.path.join("uploads", "profile_pictures", filename)
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile"
+    )
+    profile_picture = models.ImageField(
+        null=True, blank=True, upload_to=profile_picture_filepath
     )
     bio = models.TextField()
     followed_by = models.ManyToManyField(User, related_name="following", blank=True)

@@ -13,17 +13,18 @@ class TokenObtainPairSerializer(JwtTokenObtainPairSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(
+        min_length=4, write_only=True, required=True, style={"input_type": "password"}
+    )
+
     class Meta:
         model = get_user_model()
         fields = ("id", "username", "email", "password")
-        extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
-        user = get_user_model().objects.create_user(
-            username=validated_data["username"],
-            email=validated_data["email"],
-            password=validated_data["password"],
-        )
+        user = super().create(validated_data)
+        user.set_password(validated_data["password"])
+        user.save()
         return user
 
 
@@ -39,7 +40,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ("id", "user", "bio", "followed_by")
+        fields = ("id", "user", "bio", "profile_picture", "followed_by")
         read_only_fields = (
             "user",
             "followed_by",
@@ -52,7 +53,7 @@ class UserProfileListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ("id", "user", "bio", "followers_amount")
+        fields = ("id", "user", "bio", "profile_picture", "followers_amount")
 
 
 class UserProfileDetailSerializer(UserProfileSerializer):
