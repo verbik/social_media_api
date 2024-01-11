@@ -66,8 +66,10 @@ class UserProfile(models.Model):
             raise error_to_raise("A profile already exists for this user.")
 
     def clean(self):
-        UserProfile.validate_unique_profile(self.user, ValidationError)
+        if self.pk is None:
+            UserProfile.validate_unique_profile(self.user, ValidationError)
 
     def save(self, *args, **kwargs):
         self.full_clean()
+
         super(UserProfile, self).save(*args, **kwargs)

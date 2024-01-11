@@ -30,9 +30,11 @@ class UserSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         data = super(UserProfileSerializer, self).validate(attrs=attrs)
-        UserProfile.validate_unique_profile(
-            self.context["request"].user, ValidationError
-        )
+
+        if self.instance is None:
+            user = self.context["request"].user
+            UserProfile.validate_unique_profile(user, ValidationError)
+
         return data
 
     class Meta:
