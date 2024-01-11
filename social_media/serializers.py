@@ -34,10 +34,20 @@ class PostSerializer(serializers.ModelSerializer):
             "id",
             "created_at",
             "user",
+            "image",
             "text_content",
             "hashtags",
             "likes",
             "comments",
+        )
+
+
+class PostImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = (
+            "id",
+            "image",
         )
 
 
@@ -54,6 +64,7 @@ class PostListSerializer(PostSerializer):
             "id",
             "created_at",
             "user",
+            "image",
             "text_content",
             "hashtags",
             "likes_amount",
@@ -61,7 +72,7 @@ class PostListSerializer(PostSerializer):
         )
 
 
-class PostDetailSerializer(PostSerializer):  # TODO:
+class PostDetailSerializer(PostSerializer):
     comments = CommentSerializer(source="post_comments", many=True, read_only=True)
     likes = serializers.SlugRelatedField(
         many=True, read_only=True, slug_field="username"
@@ -79,7 +90,11 @@ class PostLikeSerializer(serializers.ModelSerializer):
 class PostHashtagSerializer(serializers.ModelSerializer):
     """Serializer for hashtag creation when creating a new post instance"""
 
-    hashtags = HashtagSerializer(many=True, read_only=False, allow_empty=True)
+    hashtags = HashtagSerializer(
+        many=True,
+        read_only=False,
+        allow_empty=True,
+    )
 
     class Meta:
         model = Post
@@ -120,6 +135,7 @@ class PostUpdateSerializer(PostHashtagSerializer):
             instance.text_content = validated_data.get(
                 "text_content", instance.text_content
             )
+
             instance.save()
 
             if hashtags_data:

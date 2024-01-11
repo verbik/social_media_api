@@ -18,6 +18,7 @@ from .serializers import (
     CommentCreateSerializer,
     PostLikeSerializer,
     PostUpdateSerializer,
+    PostImageSerializer,
 )
 from .models import Post, Comment
 
@@ -172,7 +173,25 @@ class UserPostsViewSet(viewsets.ModelViewSet):
         if self.action in ("update", "partial_update"):
             return PostUpdateSerializer
 
+        if self.action == "upload_image":
+            return PostImageSerializer
+
         return PostSerializer
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="upload-image",
+        permission_classes=[IsOwnerOrReadOnly],
+    )
+    def upload_image(self, request: Request, pk=None):
+        """Endpoint for uploading image to specific post"""
+        post = self.get_object()
+        serializer = self.get_serializer(post, data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer) -> None:
         serializer.save(user=self.request.user)
