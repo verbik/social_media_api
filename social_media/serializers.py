@@ -17,6 +17,13 @@ class CommentCreateSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ("id", "comment_contents")
 
+    def create(self, validated_data):
+        user = self.context["request"].user
+
+        comment = Comment.objects.create(user=user, **validated_data)
+
+        return comment
+
 
 class HashtagSerializer(serializers.ModelSerializer):
     class Meta:

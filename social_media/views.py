@@ -36,7 +36,7 @@ class CommentViewSet(
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_serializer_class(self):
-        if self.action == "update" or self.action == "partial_update":
+        if self.action in ["update", "partial_update"]:
             return CommentCreateSerializer
         return CommentSerializer
 
@@ -193,7 +193,7 @@ class UserPostsViewSet(viewsets.ModelViewSet):
         if self.action == "retrieve":
             return PostDetailSerializer
 
-        if self.action in ("update", "partial_update"):
+        if self.action in ["update", "partial_update"]:
             return PostUpdateSerializer
 
         if self.action == "upload_image":
